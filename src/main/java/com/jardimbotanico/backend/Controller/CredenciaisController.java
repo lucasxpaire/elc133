@@ -1,4 +1,4 @@
-package com.jardimbotanico.backend.Controller;
+package com.jardimbotanico.backend.controller;
 
 import com.jardimbotanico.backend.model.Credenciais;
 import com.jardimbotanico.backend.repository.CredenciaisRepository;

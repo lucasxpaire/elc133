@@ -1,4 +1,4 @@
-package com.jardimbotanico.backend.Controller;
+package com.jardimbotanico.backend.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -20,11 +20,11 @@ public class PlantaController {
 
     private static final String COLLECTION_NAME = "plantas";
 
-    @PostMapping
-    public ResponseEntity<?> cadastrarPlanta(@RequestBody Map<String, Object> planta) {
-        var novaPlanta = mongoTemplate.insert(planta, COLLECTION_NAME);
-        return ResponseEntity.ok(novaPlanta);
-    }
+        @PostMapping
+        public ResponseEntity<?> cadastrarPlanta(@RequestBody Map<String, Object> planta) {
+            var novaPlanta = mongoTemplate.insert(planta, COLLECTION_NAME);
+            return ResponseEntity.ok(novaPlanta);
+        }
 
     @GetMapping
     public List<Map> listarPlantas() {
