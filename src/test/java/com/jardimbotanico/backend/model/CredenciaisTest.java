@@ -10,15 +10,16 @@ public class CredenciaisTest {
     public void testCredenciais() {
         // Cria um objeto Credenciais
         Credenciais credenciais = new Credenciais();
-        
+
         // Define valores usando setters
         credenciais.setId("1");
         credenciais.setUsername("usuario");
-        credenciais.setPassword("senhaSegura"); 
+        credenciais.setPassword("senhaSegura");
 
         // Verifica se os valores estão corretos através dos getters
         assertEquals("1", credenciais.getId());
         assertEquals("usuario", credenciais.getUsername());
         assertEquals("senhaSegura", credenciais.getPassword());
     }
+
 }

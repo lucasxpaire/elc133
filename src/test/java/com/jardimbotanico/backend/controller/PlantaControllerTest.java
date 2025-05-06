@@ -1,11 +1,11 @@
 package com.jardimbotanico.backend.controller;
 
-import org.apache.catalina.connector.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -17,13 +17,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-// import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.stereotype.Service;
 
-// import com.jardimbotanico.backend.Controller.PlantaController;
+import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.UpdateResult;
 
+@SuppressWarnings("unchecked")
 public class PlantaControllerTest {
 
   @Mock
@@ -48,9 +46,9 @@ public class PlantaControllerTest {
     var response = plantaController.cadastrarPlanta(plantaMock);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals("samambaia", ((Map) response.getBody()).get("nome"));
+    assertEquals("samambaia", ((Map<String, Object>) response.getBody()).get("nome"));
   }
-  
+
   @Test
   void deveListarPlantas() throws Exception {
     List<Map> plantasMock = List.of(
@@ -85,19 +83,87 @@ public class PlantaControllerTest {
     when(mongoTemplate.findOne(
         any(Query.class),
         eq(Map.class),
-        eq("plantas")))
+        eq(COLLECTION_NAME)))
         .thenReturn(plantaMock);
 
     ResponseEntity<?> response = plantaController.buscarUmaPlanta(id);
 
     // Verificações
     assertEquals(HttpStatus.OK, response.getStatusCode());
-
     Map<String, Object> resultado = (Map<String, Object>) response.getBody();
     assertNotNull(resultado);
     assertEquals(id, resultado.get("_id"));
     assertEquals("samambaia", resultado.get("nome"));
     assertEquals("Psliotopsida", resultado.get("classe"));
   }
-  
+
+  @Test
+  void deveAtualizarPlantaComSucesso() {
+    String id = "123";
+    Map<String, Object> plantaAtualizada = Map.of(
+        "nome", "samambaia-atualizada",
+        "classe", "Psilotopsida");
+
+    // Simula o resultado da atualização
+    UpdateResult updateResultMock = mock(UpdateResult.class);
+    when(updateResultMock.getModifiedCount()).thenReturn(1L);
+
+    // Simula o comportamento do mongoTemplate
+    when(mongoTemplate.updateFirst(any(Query.class), any(Update.class), eq(COLLECTION_NAME)))
+        .thenReturn(updateResultMock);
+
+    // Executa o método do controller
+    ResponseEntity<Void> response = plantaController.atualizarPlanta(id, plantaAtualizada);
+
+    // Verifica se o status é 200 OK
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+  }
+
+  @Test
+  void deveRetornarNotFoundSeNadaForAtualizado() {
+    String id = "999";
+    Map<String, Object> plantaAtualizada = Map.of(
+        "nome", "planta-inexistente");
+
+    // Simula que nenhuma planta foi atualizada
+    UpdateResult updateResultMock = mock(UpdateResult.class);
+    when(updateResultMock.getModifiedCount()).thenReturn(0L);
+
+    when(mongoTemplate.updateFirst(any(Query.class), any(Update.class), eq(COLLECTION_NAME)))
+        .thenReturn(updateResultMock);
+
+    ResponseEntity<Void> response = plantaController.atualizarPlanta(id, plantaAtualizada);
+
+    // Verifica se o status é 404 Not Found
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+  }
+
+  @Test
+  void deveDeletarPlantaComSucesso() {
+    String id = "123";
+
+    // Simula um resultado com uma exclusão realizada
+    DeleteResult deleteResultMock = mock(DeleteResult.class);
+    when(deleteResultMock.getDeletedCount()).thenReturn(1L);
+
+    when(mongoTemplate.remove(any(Query.class), eq(COLLECTION_NAME)))
+        .thenReturn(deleteResultMock);
+
+    ResponseEntity<Void> response = plantaController.deletarPlanta(id);
+
+    assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+  }
+
+  @Test
+  void deveRetornarNotFoundSeNadaForDeletado() {
+    String id = "123";
+
+    DeleteResult deleteResultMock = mock(DeleteResult.class);
+    when(deleteResultMock.getDeletedCount()).thenReturn(0L);
+    when(mongoTemplate.remove(any(Query.class), eq(COLLECTION_NAME))).thenReturn(deleteResultMock);
+
+    ResponseEntity<Void> response = plantaController.deletarPlanta(id);
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+  }
+
 }
