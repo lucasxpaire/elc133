@@ -28,7 +28,16 @@ public class PlantaController {
 
     @GetMapping
     public List<Map> listarPlantas() {
-        return mongoTemplate.findAll(Map.class, COLLECTION_NAME);
+        List<Map> documentos = mongoTemplate.findAll(Map.class, COLLECTION_NAME);
+
+        // Converter _id para string
+        return documentos.stream().map(doc -> {
+            Object id = doc.get("_id");
+            if (id != null) {
+                doc.put("_id", id.toString());
+            }
+            return doc;
+        }).toList();
     }
 
     @GetMapping("/{id}")
@@ -37,6 +46,10 @@ public class PlantaController {
         var planta = mongoTemplate.findOne(query, Map.class, COLLECTION_NAME);
 
         if (planta != null) {
+            Object originalId = planta.get("_id");
+            if (originalId != null) {
+                planta.put("_id", originalId.toString());
+            }
             return ResponseEntity.ok(planta);
         } else {
             return ResponseEntity.notFound().build();
