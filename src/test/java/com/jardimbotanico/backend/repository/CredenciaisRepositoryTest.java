@@ -25,6 +25,7 @@ public class CredenciaisRepositoryTest {
     @Autowired
     private CredenciaisRepository credenciaisRepository;
 
+    // Teste usando banco mongo local
     @Test
     @DisplayName("Usuário presente no banco de dados.")
     public void testFindByUsername() {

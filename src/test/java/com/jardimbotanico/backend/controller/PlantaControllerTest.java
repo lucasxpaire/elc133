@@ -15,6 +15,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -73,29 +74,30 @@ public class PlantaControllerTest {
 
   @Test
   void deveRetornarUmaPlanta() {
-    String id = "123";
-    Map<String, Object> plantaMock = Map.of(
-        "_id", id,
-        "nome", "samambaia",
-        "classe", "Psliotopsida");
-
-    // Configura o mock do mongoTemplate
-    when(mongoTemplate.findOne(
-        any(Query.class),
-        eq(Map.class),
-        eq(COLLECTION_NAME)))
-        .thenReturn(plantaMock);
-
-    ResponseEntity<?> response = plantaController.buscarUmaPlanta(id);
-
-    // Verificações
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    Map<String, Object> resultado = (Map<String, Object>) response.getBody();
-    assertNotNull(resultado);
-    assertEquals(id, resultado.get("_id"));
-    assertEquals("samambaia", resultado.get("nome"));
-    assertEquals("Psliotopsida", resultado.get("classe"));
+      String id = "123";
+      Map<String, Object> plantaMock = new HashMap<>();
+      plantaMock.put("_id", id);
+      plantaMock.put("nome", "samambaia");
+      plantaMock.put("classe", "Psliotopsida");
+  
+      // Configura o mock do mongoTemplate com argThat
+      when(mongoTemplate.findOne(
+          argThat(query -> query.getQueryObject().get("_id").equals(id)),
+          eq(Map.class),
+          eq(COLLECTION_NAME))
+      ).thenReturn(plantaMock);
+  
+      ResponseEntity<?> response = plantaController.buscarUmaPlanta(id);
+  
+      // Verificações
+      assertEquals(HttpStatus.OK, response.getStatusCode());
+      Map<String, Object> resultado = (Map<String, Object>) response.getBody();
+      assertNotNull(resultado);
+      assertEquals(id, resultado.get("_id")); // aqui está ok pois o controller converteu pra string
+      assertEquals("samambaia", resultado.get("nome"));
+      assertEquals("Psliotopsida", resultado.get("classe"));
   }
+  
 
   @Test
   void deveAtualizarPlantaComSucesso() {
